@@ -1,5 +1,20 @@
+body {
+  background-color: #f0f4f8;
+  font-family:'Lucida Console', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+}
+
 .App {
   text-align: center;
+  .fc-button {
+    background-color: #61dafb !important; /* Vibrant background color */
+    border: none;
+    color: white;
+    padding: 10px 10px;
+    font-size: 1rem;
+    border-radius: 10px;
+    transition: background-color 0.5s ease, transform 0.5s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .App-logo {
@@ -27,6 +42,14 @@
 .App-link {
   color: #61dafb;
 }
+
+
+.fc-button:hover {
+  background-color: #10c0f1 !important; 
+  transform: translateY(-2px); 
+}
+
+
 
 @keyframes App-logo-spin {
   from {
