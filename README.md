@@ -16,26 +16,7 @@
 
 #### Installation
 
-**Use separate terminals for frontend/backend**
-
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/your-repo-link.git
-   cd CEN3031_GROUP4
-
----
-### Project Setup
-
-##### Prerequisites
-- Node.js 
-- Python 3.10+
-- Django
-- npm
-- Git
-
-#### Installation
-
-**use seperate terminals for frontend/backend**
+**use separate terminals for frontend/backend**
 
 1. **Clone the Repository:**
    ```bash
