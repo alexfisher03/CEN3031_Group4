@@ -1,12 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 body {
   background-color: #f0f4f8;
-  font-family:'Lucida Console', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+  font-family:'Roboto', 'Lucida Console', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
 }
 
 .App {
   text-align: center;
   .fc-button {
-    background-color: #61dafb !important; /* Vibrant background color */
+    background-color: #61dafb !important;
     border: none;
     color: white;
     padding: 10px 10px;
