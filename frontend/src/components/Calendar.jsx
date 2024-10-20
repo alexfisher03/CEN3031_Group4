@@ -27,16 +27,26 @@ function Calendar() {
 
   const handleSubmit = async () => {
     try {
+      // Check for meeting conflicts before submitting
+      const conflict = meetings.find((meeting) => meeting.start.includes(date));
+
+      if (conflict) {
+        alert('A meeting is already scheduled for this date!');
+        return; // Stop submission if conflict exists
+      }
+
+      // If no conflict, submit the new meeting
       await axios.post('http://localhost:8000/api/meetings/', {
         title,
         date,
         time,
       });
+
       alert('Meeting submitted successfully!');
-      // Optionally clear the form after submission
       setTitle('');
       setDate('');
       setTime('');
+
       // Re-fetch meetings after submission
       const response = await axios.get('http://localhost:8000/api/meetings/');
       const updatedMeetings = response.data.map((meeting) => ({
@@ -57,7 +67,7 @@ function Calendar() {
         initialView="dayGridMonth"
         events={meetings} // Pass the meetings as events
       />
-      <div>
+      <div> 
         <input
           type="text"
           placeholder="Meeting Title"
