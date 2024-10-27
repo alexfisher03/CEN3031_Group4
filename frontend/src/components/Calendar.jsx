@@ -3,136 +3,109 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import axios from 'axios';
 
-function Calendar() {
+function Calendar({ isGuest }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [meetings, setMeetings] = useState([]);
 
-  // Fetch meetings from the backend when the component mounts
+  const fetchMeetings = async () => {
+    try {
+      const response = await axios.get('/api/meetings/');
+      const fetchedMeetings = response.data.map((meeting) => ({
+        title: meeting.title,
+        start: `${meeting.date}T${meeting.time}`,
+      }));
+      setMeetings(fetchedMeetings);
+    } catch (error) {
+      console.error('Error fetching meetings:', error);
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get('http://localhost:8000/api/meetings/')
-      .then((response) => {
-        const fetchedMeetings = response.data.map((meeting) => ({
-          title: meeting.title,
-          start: `${meeting.date}T${meeting.time}`,
-        }));
-        setMeetings(fetchedMeetings);
-      })
-      .catch((error) => {
-        console.error('Error fetching meetings:', error);
-      });
+    fetchMeetings();
   }, []);
 
-  const handleSubmit = async () => {
-    try {
-      // Check for meeting conflicts before submitting
-      const conflict = meetings.find((meeting) => meeting.start.includes(date));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    if (isGuest) {
+      alert("Guests cannot add meetings.");
+      return;
+    }
+
+    if (!title || !date || !time) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
+    try {
+      const conflict = meetings.some((meeting) => meeting.start.includes(date));
       if (conflict) {
         alert('A meeting is already scheduled for this date!');
-        return; // Stop submission if conflict exists
+        return;
       }
 
-      // If no conflict, submit the new meeting
-      await axios.post('http://localhost:8000/api/meetings/', {
-        title,
-        date,
-        time,
-      });
-
+      await axios.post('/api/meetings/', { title, date, time });
       alert('Meeting submitted successfully!');
       setTitle('');
       setDate('');
       setTime('');
-
-      // Re-fetch meetings after submission
-      const response = await axios.get('http://localhost:8000/api/meetings/');
-      const updatedMeetings = response.data.map((meeting) => ({
-        title: meeting.title,
-        start: `${meeting.date}T${meeting.time}`,
-      }));
-      setMeetings(updatedMeetings);
+      await fetchMeetings();
     } catch (error) {
       console.error('Error submitting meeting:', error);
     }
   };
 
-  const styles = {
-    container: {
-      padding: '20px',
-      textAlign: 'center',
-      backgroundColor: '#f0f4f8',
-      borderRadius: '10px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      maxWidth: '800px',
-      margin: 'auto',
-    },
-    heading: {
-      fontSize: '2.5em',
-      fontWeight: 'bold',
-      color: '333',
-      marginBottom: '20px',
-    },
-    formContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '15px',
-      marginTop: '20px',
-    },
-    input: {
-      width: '80%',
-      padding: '12px',
-      fontSize: '1.2em',
-      borderRadius: '8px',
-      border: '1px solid #ccc',
-      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
-      transition: 'border-color 0.2s ease',
-    },
-    button: {
-      padding: '12px 20px',
-      fontSize: '1.2em',
-      backgroundColor: '#61dafb',
-      color: '#fff',
-      border: 'none',
-      borderRadius: '10px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      transition: 'background-color 0.3s ease',
-    }
-  };
-  
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Meeting Calendar</h2>
+    <div className="p-8 bg-gray-800 rounded-lg shadow-lg max-w-3xl mx-auto my-8 text-white">
+      <h2 className="text-3xl font-bold text-center mb-6">UF Student Org Event Schedule</h2>
+
+      {/* Calendar display */}
       <FullCalendar
         plugins={[dayGridPlugin]}
         initialView="dayGridMonth"
-        events={meetings} // Pass the meetings as events
+        events={meetings}
+        height="auto"
       />
-      <div style={styles.formContainer}>
-        <input
-          type="text"
-          placeholder="Meeting Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={styles.input}
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          style={styles.input}
-        />
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          style={styles.input}
-        />
-        <button onClick={handleSubmit} style={styles.button}>Submit Meeting</button>
-      </div>
+
+      {/* Conditional form display */}
+      {!isGuest && (
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <input
+            type="text"
+            placeholder="Meeting/Event Name"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="w-full py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
+          >
+            Submit Meeting
+          </button>
+        </form>
+      )}
+
+      {/* Message for guest users */}
+      {isGuest && (
+        <p className="text-center text-gray-400 mt-4">
+          Guests cannot add meetings. Please log in to add meetings.
+        </p>
+      )}
     </div>
   );
 }
