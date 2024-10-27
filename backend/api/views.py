@@ -1,10 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from .models import Meeting
-from api.serializers import MeetingSerializer
-from .serializers import UserSerializer
+from .serializers import MeetingSerializer, UserSerializer
+
+User = get_user_model()
 
 class MeetingViewSet(viewsets.ModelViewSet):
     queryset = Meeting.objects.all()
@@ -12,18 +13,34 @@ class MeetingViewSet(viewsets.ModelViewSet):
 
 class RegisterView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        # Ensure email ends with @ufl.edu
+        if not email.endswith('@ufl.edu'):
+            return Response({"error": "Please use a UFL email address."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if email is already registered
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create and save the new user without username
+        user = User(email=email, username=email)  # Use email as the username
+        user.set_password(password)
+        user.save()
+        return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
     def post(self, request):
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
-        if user:
-            return Response({"message": "Login successful"})
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
- 
+
+        # Look up user by email and authenticate with password
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                return Response({"message": "Login successful"})
+            else:
+                return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -1,18 +1,14 @@
 import React from 'react';
 import Calendar from './Calendar';
 
-const MainPage = () => {
+const MainPage = ({ isGuest }) => {
     return (
-        <div>
-            <header>
-                <h1>GatorSync</h1>
-                <div className="account-info">
-                    <img src="account-icon.png" alt="Account" />
-                    {/* Display user info on hover */}
-                </div>
+        <div className="bg-mesh2">
+            <header className="flex justify-center p-5">
+                <h1 className='text-3xl text-white font-extrabold'>Welcome to GatorSync</h1>
             </header>
             <main>
-                <Calendar />
+                <Calendar isGuest={isGuest} />
             </main>
         </div>
     );

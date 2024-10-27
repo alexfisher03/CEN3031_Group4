@@ -6,17 +6,27 @@ import MainPage from './components/MainPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+
   return (
       <Router>
           <Routes>
               {/* Route to Login page */}
-              <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+              <Route 
+                  path="/" 
+                  element={
+                      <Login 
+                          setIsAuthenticated={setIsAuthenticated} 
+                          setIsGuest={setIsGuest} 
+                      />
+                  } 
+              />
 
               {/* Protected route for MainPage, accessible only if authenticated */}
               <Route
                   path="/main"
                   element={
-                      isAuthenticated ? <MainPage /> : <Navigate to="/" replace />
+                      isAuthenticated ? <MainPage isGuest={isGuest} /> : <Navigate to="/" replace />
                   }
               />
           </Routes>
