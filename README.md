@@ -70,4 +70,20 @@
 3. **Submit PR**
 
 
+### For Testing
+---
+1. In the ```backend``` directory, run the command: 
+   - ```python manage.py createsuperuser```
+   
+   Proceed to create your admin credentials
 
+2. Once you have created your super user, navigate to:
+   - ```http://127.0.0.1:8000/admin/```
+   - Sign in using your newly created credentials
+
+3. Now you can see the admin dashboard for Django 
+   
+   ```TO TEST THE APP```:
+   - Navigate to ```http://localhost:3000/```
+   - Login to the application using the same ```SUPERUSER``` credentials you created
+   - Now you can test the application out and monitor any changes made on the frontend directly via the ```admin interface```
