@@ -46,7 +46,7 @@ const Login = ({ setIsAuthenticated, setIsGuest }) => {
     };
 
     return (
-        <div className='min-h-screen bg-mesh'>
+        <div className='min-h-screen bg-mesh bg-cover'>
             <div className="flex justify-center">
                 <header className="flex-col text-center pt-16 mb-16">
                     <h1 className='text-3xl text-white font-extrabold'>Welcome to GatorSync</h1>
