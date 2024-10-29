@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
+
 import dayGridPlugin from '@fullcalendar/daygrid';
+
 import axios from 'axios';
 
 function Calendar({ isGuest }) {
   const [title, setTitle] = useState('');
+
   const [date, setDate] = useState('');
+
   const [time, setTime] = useState('');
   const [meetings, setMeetings] = useState([]);
 
@@ -49,12 +53,17 @@ function Calendar({ isGuest }) {
       await axios.post('/api/meetings/', { title, date, time });
       alert('Meeting submitted successfully!');
       setTitle('');
+
       setDate('');
+
       setTime('');
       await fetchMeetings();
     } catch (error) {
+
       console.error('Error submitting meeting:', error);
+
     }
+
   };
 
   return (
@@ -107,7 +116,13 @@ function Calendar({ isGuest }) {
         </p>
       )}
     </div>
+
   );
+
 }
 
+
+
 export default Calendar;
+
+
