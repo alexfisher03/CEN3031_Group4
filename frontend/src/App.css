@@ -62,3 +62,12 @@ body {
     transform: rotate(360deg);
   }
 }
+
+.fc-daygrid-day:hover {
+  background-color: rgba(75, 85, 99, 0.3); /* hover color */
+  transition: background-color 0.2s ease;
+}
+
+.fc-daygrid-day:hover .fc-daygrid-day-top {
+  color: rgb(37, 150, 190); /* text color */
+}
