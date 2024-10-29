@@ -9,7 +9,7 @@ body {
 .App {
   text-align: center;
   .fc-button {
-    background-color: #61dafb !important;
+    background-color: #8436b8 !important;
     border: none;
     color: white;
     padding: 10px 10px;
@@ -43,12 +43,12 @@ body {
 }
 
 .App-link {
-  color: #61dafb;
+  color: #8436b8;
 }
 
 
 .fc-button:hover {
-  background-color: #10c0f1 !important; 
+  background-color: #8436b8 !important; 
   transform: translateY(-2px); 
 }
 

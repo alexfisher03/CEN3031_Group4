@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 
 import axios from 'axios';
 
@@ -72,10 +73,15 @@ function Calendar({ isGuest }) {
 
       {/* Calendar display */}
       <FullCalendar
-        plugins={[dayGridPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin]}
         initialView="dayGridMonth"
         events={meetings}
         height="auto"
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridDay'
+        }}
       />
 
       {/* Conditional form display */}
