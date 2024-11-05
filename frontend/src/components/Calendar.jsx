@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
-
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-
 import axios from 'axios';
 
 function Calendar({ isGuest }) {
   const [title, setTitle] = useState('');
-
   const [date, setDate] = useState('');
-
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [meetings, setMeetings] = useState([]);
 
   const fetchMeetings = async () => {
@@ -19,7 +16,8 @@ function Calendar({ isGuest }) {
       const response = await axios.get('/api/meetings/');
       const fetchedMeetings = response.data.map((meeting) => ({
         title: meeting.title,
-        start: `${meeting.date}T${meeting.time}`,
+        start: `${meeting.date}T${meeting.start_time}`,
+        end: `${meeting.date}T${meeting.end_time}`
       }));
       setMeetings(fetchedMeetings);
     } catch (error) {
@@ -39,32 +37,37 @@ function Calendar({ isGuest }) {
       return;
     }
 
-    if (!title || !date || !time) {
+    if (!title || !date || !startTime || !endTime) {
       alert("Please fill out all fields.");
       return;
     }
 
-    try {
-      const conflict = meetings.some((meeting) => meeting.start.includes(date));
-      if (conflict) {
-        alert('A meeting is already scheduled for this date!');
-        return;
-      }
+    // Check for time conflicts
+    const conflict = meetings.some((meeting) => 
+      meeting.start.includes(date) &&
+      (
+        (startTime >= meeting.start.split('T')[1] && startTime < meeting.end.split('T')[1]) ||
+        (endTime > meeting.start.split('T')[1] && endTime <= meeting.end.split('T')[1]) ||
+        (startTime <= meeting.start.split('T')[1] && endTime >= meeting.end.split('T')[1])
+      )
+    );
 
-      await axios.post('/api/meetings/', { title, date, time });
-      alert('Meeting submitted successfully!');
-      setTitle('');
-
-      setDate('');
-
-      setTime('');
-      await fetchMeetings();
-    } catch (error) {
-
-      console.error('Error submitting meeting:', error);
-
+    if (conflict) {
+      alert('A meeting is already scheduled during this time block!');
+      return;
     }
 
+    try {
+      await axios.post('/api/meetings/', { title, date, start_time: startTime, end_time: endTime });
+      alert('Meeting submitted successfully!');
+      setTitle('');
+      setDate('');
+      setStartTime('');
+      setEndTime('');
+      await fetchMeetings();
+    } catch (error) {
+      console.error('Error submitting meeting:', error);
+    }
   };
 
   return (
@@ -102,8 +105,14 @@ function Calendar({ isGuest }) {
           />
           <input
             type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+          />
+          <input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
             className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
           />
           <button
