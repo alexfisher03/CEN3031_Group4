@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
 from .models import Meeting
 from .serializers import MeetingSerializer, UserSerializer
@@ -10,6 +11,14 @@ User = get_user_model()
 class MeetingViewSet(viewsets.ModelViewSet):
     queryset = Meeting.objects.all()
     serializer_class = MeetingSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            meeting = self.get_object()
+            meeting.delete()
+            return Response({"message": "Meeting deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Meeting.DoesNotExist:
+            return Response({"error": "Meeting not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class RegisterView(APIView):
     def post(self, request):

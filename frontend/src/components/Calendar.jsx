@@ -15,6 +15,7 @@ function Calendar({ isGuest }) {
     try {
       const response = await axios.get('/api/meetings/');
       const fetchedMeetings = response.data.map((meeting) => ({
+        id: meeting.id, 
         title: meeting.title,
         start: `${meeting.date}T${meeting.start_time}`,
         end: `${meeting.date}T${meeting.end_time}`
@@ -28,6 +29,24 @@ function Calendar({ isGuest }) {
   useEffect(() => {
     fetchMeetings();
   }, []);
+
+  const handleDeleteMeeting = async (event) => { 
+    if (isGuest) {
+      alert("Guests cannot delete meetings.");
+      return;
+    }
+
+    const confirmDelete = window.confirm(`Would you like to delete the meeting "${event.event.title}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`/api/meetings/${event.event.id}/`);
+      alert('Meeting deleted successfully!');
+      await fetchMeetings();
+    } catch (error) {
+      console.error('Error deleting meeting:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,6 +104,7 @@ function Calendar({ isGuest }) {
           center: 'title',
           right: 'dayGridMonth,timeGridWeek, timeGridDay'
         }}
+        eventClick={handleDeleteMeeting}
       />
 
       {/* Conditional form display */}
@@ -127,17 +147,11 @@ function Calendar({ isGuest }) {
       {/* Message for guest users */}
       {isGuest && (
         <p className="text-center text-gray-400 mt-4">
-          Guests cannot add meetings. Please log in to add meetings.
+          Guests cannot add or delete meetings. Please log in to add or delete meetings.
         </p>
       )}
     </div>
-
   );
-
 }
 
-
-
 export default Calendar;
-
-
