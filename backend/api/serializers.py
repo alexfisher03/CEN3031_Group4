@@ -6,7 +6,7 @@ from django.utils import timezone
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ['title', 'date', 'start_time', 'end_time']
+        fields = ['id', 'title', 'date', 'start_time', 'end_time']
 
     def validate(self, data):
         # end_time is after start_time
