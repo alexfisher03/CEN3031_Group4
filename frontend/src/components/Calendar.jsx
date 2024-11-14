@@ -10,6 +10,8 @@ function Calendar({ isGuest }) {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [meetings, setMeetings] = useState([]);
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [hoverMeeting, setHoverMeeting] = useState(null);
 
   const fetchMeetings = async () => {
     try {
@@ -30,19 +32,20 @@ function Calendar({ isGuest }) {
     fetchMeetings();
   }, []);
 
-  const handleDeleteMeeting = async (event) => { 
+  const handleDeleteMeeting = async (meetingId) => { 
     if (isGuest) {
       alert("Guests cannot delete meetings.");
       return;
     }
 
-    const confirmDelete = window.confirm(`Would you like to delete the meeting "${event.event.title}"?`);
+    const confirmDelete = window.confirm("Would you like to delete this meeting?");
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`/api/meetings/${event.event.id}/`);
+      await axios.delete(`/api/meetings/${meetingId}/`);
       alert('Meeting deleted successfully!');
       await fetchMeetings();
+      setSelectedMeeting(null);
     } catch (error) {
       console.error('Error deleting meeting:', error);
     }
@@ -61,7 +64,6 @@ function Calendar({ isGuest }) {
       return;
     }
 
-    // Check for time conflicts
     const conflict = meetings.some((meeting) => 
       meeting.start.includes(date) &&
       (
@@ -89,11 +91,36 @@ function Calendar({ isGuest }) {
     }
   };
 
+  const handleEventClick = (clickInfo) => {
+    const event = clickInfo.event;
+    setSelectedMeeting({
+      id: event.id,
+      title: event.title,
+      date: event.start.toLocaleDateString(),
+      startTime: event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+    });
+  };
+
+  const handleEventMouseEnter = (mouseEnterInfo) => {
+    const { event } = mouseEnterInfo;
+    setHoverMeeting({
+      title: event.title,
+      date: event.start.toLocaleDateString(),
+      startTime: event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+      anchorElement: mouseEnterInfo.el
+    });
+  };
+
+  const handleEventMouseLeave = () => {
+    setHoverMeeting(null);
+  };
+
   return (
     <div className="p-8 bg-gray-800 rounded-lg shadow-lg max-w-3xl mx-auto my-8 text-white">
       <h2 className="text-3xl font-bold text-center mb-6">UF Student Org Event Schedule</h2>
 
-      {/* Calendar display */}
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin]}
         initialView="dayGridMonth"
@@ -104,10 +131,46 @@ function Calendar({ isGuest }) {
           center: 'title',
           right: 'dayGridMonth,timeGridWeek, timeGridDay'
         }}
-        eventClick={handleDeleteMeeting}
+        eventClick={handleEventClick}
+        eventMouseEnter={handleEventMouseEnter}
+        eventMouseLeave={handleEventMouseLeave}
       />
 
-      {/* Conditional form display */}
+      {selectedMeeting && (
+        <div className="mt-4 p-4 bg-gray-700 rounded text-center">
+          <p><strong>{selectedMeeting.title}</strong></p>
+          <p>{selectedMeeting.date}</p>
+          <p>{selectedMeeting.startTime} - {selectedMeeting.endTime}</p>
+          <button
+            onClick={() => handleDeleteMeeting(selectedMeeting.id)}
+            className="py-1 px-3 bg-indigo-600 rounded hover:bg-indigo-700 transition"
+          >
+            Delete Meeting
+          </button>
+        </div>
+      )}
+
+      {hoverMeeting && (
+        <div
+          style={{
+            position: 'absolute',
+            backgroundColor: 'rgba(0, 0, 0, 1)',
+            color: 'white',
+            padding: '8px',
+            borderRadius: '4px',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            width: '200px',
+            top: hoverMeeting.anchorElement.getBoundingClientRect().top + window.scrollY,
+            left: hoverMeeting.anchorElement.getBoundingClientRect().right + 5 + window.scrollX
+          }}
+        >
+          <p><strong>{hoverMeeting.title}</strong></p>
+          <p>{hoverMeeting.date}</p>
+          <p>{hoverMeeting.startTime} - {hoverMeeting.endTime}</p>
+        </div>
+      )}
+
       {!isGuest && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
@@ -144,7 +207,6 @@ function Calendar({ isGuest }) {
         </form>
       )}
 
-      {/* Message for guest users */}
       {isGuest && (
         <p className="text-center text-gray-400 mt-4">
           Guests cannot add or delete meetings. Please log in to add or delete meetings.

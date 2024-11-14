@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
+
 body {
   background-color: #f0f4f8;
   background-size: cover;
@@ -48,7 +49,7 @@ body {
 
 
 .fc-button:hover {
-  background-color: #8436b8 !important; 
+  background-color: #4f46e5 !important; 
   transform: translateY(-2px); 
 }
 
@@ -63,11 +64,7 @@ body {
   }
 }
 
-.fc-daygrid-day:hover {
-  background-color: rgba(75, 85, 99, 0.3); /* hover color */
-  transition: background-color 0.2s ease;
-}
 
-.fc-daygrid-day:hover .fc-daygrid-day-top {
-  color: rgb(37, 150, 190); /* text color */
-}
+
+
+
