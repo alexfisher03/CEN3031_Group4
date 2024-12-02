@@ -15,7 +15,6 @@ function Calendar({ isGuest }) {
   const [selectedMeetingStartTime, setSelectedMeetingStartTime] = useState(null);
   const [selectedMeetingEndTime, setSelectedMeetingEndTime] = useState(null);
   const [hoverMeeting, setHoverMeeting] = useState(null);
-  const [hoverBoxPosition, setHoverBoxPosition] = useState({top: 0, left: 0});
 
   const fetchMeetings = async () => {
     try {
@@ -23,10 +22,11 @@ function Calendar({ isGuest }) {
       const fetchedMeetings = response.data.map((meeting) => ({
         title: meeting.title,
         start: `${meeting.date}T${meeting.start_time}`,
-        end: `${meeting.date}T${meeting.end_time}`
+        end: `${meeting.date}T${meeting.end_time}`,
       }));
       setMeetings(fetchedMeetings);
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching meetings:', error);
     }
   };
@@ -35,33 +35,84 @@ function Calendar({ isGuest }) {
     fetchMeetings();
   }, []);
 
+  const getEventColor = (start, end) => {
+    const startTime = new Date(start);
+    const endTime = new Date(end);
+    const duration = (endTime - startTime) / (1000 * 60); // duration in minutes
+
+    if (duration <= 60) {
+      return '#20B2AA';
+    }
+    if (duration <= 120) {
+      return '#7B68EE';
+    }
+    return '#C71585';
+  };
+
+  const renderEventContent = (eventInfo) => {
+    const color = getEventColor(eventInfo.event.start, eventInfo.event.end);
+    return (
+      <div
+        className="flex items-center"
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span
+          className="w-2 h-2 rounded-full mr-2"
+          style={{ backgroundColor: color }}
+        ></span>
+        <span
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 'calc(100% - 12px)',
+            display: 'inline-block',
+          }}
+        >
+          {eventInfo.event.title}
+        </span>
+      </div>
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isGuest) {
-      alert("Guests cannot add meetings.");
+      alert('Guests cannot add meetings.');
       return;
     }
 
     if (!title || !date || !startTime || !endTime) {
-      alert("Please fill out all fields.");
+      alert('Please fill out all fields.');
       return;
     }
 
     // Check for time conflicts
-    const conflict = meetings.some((meeting) => 
-      meeting.start.includes(date) &&
-      (
-        (startTime >= meeting.start.split('T')[1] && startTime < meeting.end.split('T')[1]) ||
-        (endTime > meeting.start.split('T')[1] && endTime <= meeting.end.split('T')[1]) ||
-        (startTime <= meeting.start.split('T')[1] && endTime >= meeting.end.split('T')[1])
-      )
-    );
-
+    const conflict = meetings.some((meeting) => {
+      const meetingStart = meeting.start.split('T')[1];
+      const meetingEnd = meeting.end.split('T')[1];
+    
+      return (
+        meeting.start.includes(date) &&
+        !(endTime === meetingStart || startTime === meetingEnd) &&
+        (
+          (startTime >= meetingStart && startTime < meetingEnd) ||
+          (endTime > meetingStart && endTime <= meetingEnd) ||
+          (startTime <= meetingStart && endTime >= meetingEnd)
+        )
+      );
+    });
+    
     if (conflict) {
       alert('A meeting is already scheduled during this time block!');
       return;
     }
+    
 
     try {
       await axios.post('/api/meetings/', { title, date, start_time: startTime, end_time: endTime });
@@ -77,9 +128,7 @@ function Calendar({ isGuest }) {
   };
 
   const handleEventClick = (clickInfo) => {
-    if (
-      selectedMeeting
-    ) {
+    if (selectedMeeting) {
       setSelectedMeeting(null);
       setSelectedMeetingDate(null);
       setSelectedMeetingStartTime(null);
@@ -87,9 +136,13 @@ function Calendar({ isGuest }) {
     } else {
       setSelectedMeeting(clickInfo.event.title);
       setSelectedMeetingDate(clickInfo.event.start.toLocaleDateString());
-      setSelectedMeetingStartTime(clickInfo.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      setSelectedMeetingStartTime(
+        clickInfo.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
       setSelectedMeetingEndTime(
-        clickInfo.event.end ? clickInfo.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+        clickInfo.event.end
+          ? clickInfo.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : 'N/A'
       );
     }
   };
@@ -100,10 +153,11 @@ function Calendar({ isGuest }) {
       title: event.title,
       date: event.start.toLocaleDateString(),
       startTime: event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-      anchorElement: mouseEnterInfo.el
+      endTime: event.end
+        ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'N/A',
+      anchorElement: mouseEnterInfo.el,
     });
-    // setHoverBoxPosition({ top: mouseEnterInfo.jsEvent.clientY + 10, left: mouseEnterInfo.jsEvent.clientX + 10 });
   };
 
   const handleEventMouseLeave = () => {
@@ -123,26 +177,27 @@ function Calendar({ isGuest }) {
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridDay'
+          right: 'dayGridMonth,timeGridDay',
         }}
         eventClick={handleEventClick}
         eventMouseEnter={handleEventMouseEnter}
         eventMouseLeave={handleEventMouseLeave}
+        eventContent={renderEventContent} // Custom rendering
       />
 
-    {selectedMeeting && (
-      <div className="mt-4 p-4 bg-gray-700 rounded text-center">
-        <p><strong>{selectedMeeting}</strong></p>
-        <p>{selectedMeetingDate}</p>
-        <p>{selectedMeetingStartTime} - {selectedMeetingEndTime}</p>
-      </div>
-    )}
+      {selectedMeeting && (
+        <div className="mt-4 p-4 bg-gray-700 rounded text-center">
+          <p><strong>{selectedMeeting}</strong></p>
+          <p>{selectedMeetingDate}</p>
+          <p>{selectedMeetingStartTime} - {selectedMeetingEndTime}</p>
+        </div>
+      )}
 
-    {hoverMeeting && (
+      {hoverMeeting && (
         <div
           style={{
             position: 'absolute',
-            backgroundColor: 'rgba(0, 0, 0, 1)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
             color: 'white',
             padding: '8px',
             borderRadius: '4px',
@@ -150,7 +205,7 @@ function Calendar({ isGuest }) {
             zIndex: 1000,
             width: '200px',
             top: hoverMeeting.anchorElement.getBoundingClientRect().top + window.scrollY,
-            left: hoverMeeting.anchorElement.getBoundingClientRect().right + 5 + window.scrollX
+            left: hoverMeeting.anchorElement.getBoundingClientRect().right + 5 + window.scrollX,
           }}
         >
           <p><strong>{hoverMeeting.title}</strong></p>
@@ -158,7 +213,6 @@ function Calendar({ isGuest }) {
           <p>{hoverMeeting.startTime} - {hoverMeeting.endTime}</p>
         </div>
       )}
-
 
       {/* Conditional form display */}
       {!isGuest && (
@@ -204,13 +258,7 @@ function Calendar({ isGuest }) {
         </p>
       )}
     </div>
-
   );
-
 }
 
-
-
 export default Calendar;
-
-
