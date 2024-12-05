@@ -24,7 +24,7 @@ function Calendar({ isGuest, onMeetingAdded }) {
         id: meeting.id,
         title: meeting.title,
         start: `${meeting.date}T${meeting.start_time}`,
-        end: `${meeting.date}T${meeting.end_time}`
+        end: `${meeting.date}T${meeting.end_time}`,
       }));
       setMeetings(fetchedMeetings);
     } catch (error) {
@@ -71,14 +71,20 @@ function Calendar({ isGuest, onMeetingAdded }) {
       return;
     }
 
-    const conflict = meetings.some((meeting) =>
-      meeting.start.includes(date) &&
-      (
-        (startTime >= meeting.start.split('T')[1] && startTime < meeting.end.split('T')[1]) ||
-        (endTime > meeting.start.split('T')[1] && endTime <= meeting.end.split('T')[1]) ||
-        (startTime <= meeting.start.split('T')[1] && endTime >= meeting.end.split('T')[1])
-      )
-    );
+    const conflict = meetings.some((meeting) => {
+      const meetingStart = meeting.start.split('T')[1];
+      const meetingEnd = meeting.end.split('T')[1];
+
+      return (
+        meeting.start.includes(date) &&
+        !(endTime === meetingStart || startTime === meetingEnd) &&
+        (
+          (startTime >= meetingStart && startTime < meetingEnd) ||
+          (endTime > meetingStart && endTime <= meetingEnd) ||
+          (startTime <= meetingStart && endTime >= meetingEnd)
+        )
+      );
+    });
 
     if (conflict) {
       alert('A meeting is already scheduled during this time block!');
@@ -99,6 +105,51 @@ function Calendar({ isGuest, onMeetingAdded }) {
     }
   };
 
+  // Color coding for events
+  const getEventColor = (start, end) => {
+    const startTime = new Date(start);
+    const endTime = new Date(end);
+    const duration = (endTime - startTime) / (1000 * 60); // duration in minutes
+
+    if (duration <= 60) {
+      return '#20B2AA'; // LightSeaGreen
+    }
+    if (duration <= 120) {
+      return '#7B68EE'; // MediumSlateBlue
+    }
+    return '#C71585'; // MediumVioletRed
+  };
+
+  const renderEventContent = (eventInfo) => {
+    const color = getEventColor(eventInfo.event.start, eventInfo.event.end);
+    return (
+      <div
+        className="flex items-center"
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span
+          className="w-2 h-2 rounded-full mr-2"
+          style={{ backgroundColor: color }}
+        ></span>
+        <span
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 'calc(100% - 12px)',
+            display: 'inline-block',
+          }}
+        >
+          {eventInfo.event.title}
+        </span>
+      </div>
+    );
+  };
+
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
     setSelectedMeeting({
@@ -106,7 +157,7 @@ function Calendar({ isGuest, onMeetingAdded }) {
       title: event.title,
       date: event.start.toLocaleDateString(),
       startTime: event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
     });
   };
 
@@ -116,8 +167,10 @@ function Calendar({ isGuest, onMeetingAdded }) {
       title: event.title,
       date: event.start.toLocaleDateString(),
       startTime: event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      endTime: event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-      anchorElement: mouseEnterInfo.el
+      endTime: event.end
+        ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'N/A',
+      anchorElement: mouseEnterInfo.el,
     });
   };
 
@@ -137,11 +190,12 @@ function Calendar({ isGuest, onMeetingAdded }) {
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay',
         }}
         eventClick={handleEventClick}
         eventMouseEnter={handleEventMouseEnter}
         eventMouseLeave={handleEventMouseLeave}
+        eventContent={renderEventContent} // Custom rendering for event content
         slotMinTime="08:00:00" // Start time at 8:00 AM
         slotMaxTime="20:00:00" // End time at 8:00 PM
         views={{
@@ -174,7 +228,7 @@ function Calendar({ isGuest, onMeetingAdded }) {
         <div
           style={{
             position: 'absolute',
-            backgroundColor: 'rgba(0, 0, 0, 1)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
             color: 'white',
             padding: '8px',
             borderRadius: '4px',
@@ -182,7 +236,7 @@ function Calendar({ isGuest, onMeetingAdded }) {
             zIndex: 1000,
             width: '200px',
             top: hoverMeeting.anchorElement.getBoundingClientRect().top + window.scrollY,
-            left: hoverMeeting.anchorElement.getBoundingClientRect().right + 5 + window.scrollX
+            left: hoverMeeting.anchorElement.getBoundingClientRect().right + 5 + window.scrollX,
           }}
         >
           <p><strong>{hoverMeeting.title}</strong></p>
