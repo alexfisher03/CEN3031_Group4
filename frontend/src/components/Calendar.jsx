@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid'; 
+import timeGridPlugin from '@fullcalendar/timegrid';
 import axios from 'axios';
 
-function Calendar({ isGuest }) {
+function Calendar({ isGuest, onMeetingAdded }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -13,11 +14,14 @@ function Calendar({ isGuest }) {
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [hoverMeeting, setHoverMeeting] = useState(null);
 
+  const navigate = useNavigate(); // React Router hook for navigation
+
+  // Fetch meetings
   const fetchMeetings = async () => {
     try {
       const response = await axios.get('/api/meetings/');
       const fetchedMeetings = response.data.map((meeting) => ({
-        id: meeting.id, 
+        id: meeting.id,
         title: meeting.title,
         start: `${meeting.date}T${meeting.start_time}`,
         end: `${meeting.date}T${meeting.end_time}`
@@ -32,13 +36,14 @@ function Calendar({ isGuest }) {
     fetchMeetings();
   }, []);
 
-  const handleDeleteMeeting = async (meetingId) => { 
+  // Handle delete meeting
+  const handleDeleteMeeting = async (meetingId) => {
     if (isGuest) {
-      alert("Guests cannot delete meetings.");
+      alert('Guests cannot delete meetings.');
       return;
     }
 
-    const confirmDelete = window.confirm("Would you like to delete this meeting?");
+    const confirmDelete = window.confirm('Would you like to delete this meeting?');
     if (!confirmDelete) return;
 
     try {
@@ -46,25 +51,27 @@ function Calendar({ isGuest }) {
       alert('Meeting deleted successfully!');
       await fetchMeetings();
       setSelectedMeeting(null);
+      if (onMeetingAdded) onMeetingAdded(); // Trigger update for Upcoming Meetings
     } catch (error) {
       console.error('Error deleting meeting:', error);
     }
   };
 
+  // Handle new meeting submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isGuest) {
-      alert("Guests cannot add meetings.");
+      alert('Guests cannot add meetings.');
       return;
     }
 
     if (!title || !date || !startTime || !endTime) {
-      alert("Please fill out all fields.");
+      alert('Please fill out all fields.');
       return;
     }
 
-    const conflict = meetings.some((meeting) => 
+    const conflict = meetings.some((meeting) =>
       meeting.start.includes(date) &&
       (
         (startTime >= meeting.start.split('T')[1] && startTime < meeting.end.split('T')[1]) ||
@@ -86,6 +93,7 @@ function Calendar({ isGuest }) {
       setStartTime('');
       setEndTime('');
       await fetchMeetings();
+      if (onMeetingAdded) onMeetingAdded(); // Trigger update for Upcoming Meetings
     } catch (error) {
       console.error('Error submitting meeting:', error);
     }
@@ -129,11 +137,23 @@ function Calendar({ isGuest }) {
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek, timeGridDay'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
         eventClick={handleEventClick}
         eventMouseEnter={handleEventMouseEnter}
         eventMouseLeave={handleEventMouseLeave}
+        slotMinTime="08:00:00" // Start time at 8:00 AM
+        slotMaxTime="20:00:00" // End time at 8:00 PM
+        views={{
+          timeGridWeek: {
+            slotMinTime: "08:00:00",
+            slotMaxTime: "20:00:00",
+          },
+          timeGridDay: {
+            slotMinTime: "08:00:00",
+            slotMaxTime: "20:00:00",
+          },
+        }}
       />
 
       {selectedMeeting && (
@@ -173,44 +193,64 @@ function Calendar({ isGuest }) {
 
       {!isGuest && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input
-            type="text"
-            placeholder="Meeting/Event Name"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
-          />
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
-          />
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
-          />
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
-          >
-            Submit Meeting
-          </button>
+          <div className="flex justify-center">
+            <input
+              type="text"
+              placeholder="Meeting/Event Name"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-1/2 px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex justify-center">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-1/2 px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex justify-center">
+            <input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-1/2 px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex justify-center">
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-1/2 px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:ring focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              className="w-1/4 py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
+            >
+              Submit Meeting
+            </button>
+          </div>
         </form>
       )}
 
       {isGuest && (
-        <p className="text-center text-gray-400 mt-4">
-          Guests cannot add or delete meetings. Please log in to add or delete meetings.
-        </p>
+        <>
+          <p className="text-center text-gray-400 mt-4">
+            Guests cannot add or delete meetings. Please log in to add or delete meetings.
+          </p>
+          <div className="flex justify-center mt-3">
+            <button
+              onClick={() => navigate('/')}
+              className="w-1/4 py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
+            >
+              Log In
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

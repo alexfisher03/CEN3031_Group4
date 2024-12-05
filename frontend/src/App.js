@@ -9,6 +9,7 @@ function App() {
   const [isGuest, setIsGuest] = useState(false);
 
   return (
+    <>
       <Router>
           <Routes>
               {/* Route to Login page */}
@@ -31,6 +32,7 @@ function App() {
               />
           </Routes>
       </Router>
+    </>
   );
 }
 
