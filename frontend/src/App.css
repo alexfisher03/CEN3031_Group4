@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
+
 body {
   background-color: #f0f4f8;
   background-size: cover;
@@ -48,7 +49,7 @@ body {
 
 
 .fc-button:hover {
-  background-color: #8436b8 !important; 
+  background-color: #4f46e5 !important; 
   transform: translateY(-2px); 
 }
 
@@ -63,11 +64,32 @@ body {
   }
 }
 
-.fc-daygrid-day:hover {
-  background-color: rgba(75, 85, 99, 0.3); /* hover color */
-  transition: background-color 0.2s ease;
+
+ /* Custom style for the week day cell */
+.fc .fc-col-header-cell {
+  background-color: #374151; /* Match the gray-800 or a darker shade */
+  color: white; /* Ensure the text remains visible */
+  border-color: #2e2e2e; /* Optional: Adjust border color for a clean look */
 }
 
-.fc-daygrid-day:hover .fc-daygrid-day-top {
-  color: rgb(37, 150, 190); /* text color */
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 12px;
 }
+
+::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #514b53;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #727272;
+}
+
+
+
+
