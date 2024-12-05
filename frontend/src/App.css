@@ -65,6 +65,31 @@ body {
 }
 
 
+ /* Custom style for the week day cell */
+.fc .fc-col-header-cell {
+  background-color: #374151; /* Match the gray-800 or a darker shade */
+  color: white; /* Ensure the text remains visible */
+  border-color: #2e2e2e; /* Optional: Adjust border color for a clean look */
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #514b53;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #727272;
+}
+
 
 
 
