@@ -1,4 +1,4 @@
-# Development Environment for CEN3031 (Intro to Software Engineering)
+# GatorSync - Centralized UF Student Org Scheduler
 ---
 #### CEN3031_Group4
 ##### Group Name: The Bug Squashers
